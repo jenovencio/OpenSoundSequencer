@@ -54,50 +54,25 @@ class pad1(QtGui.QGraphicsEllipseItem):
     __counter = 0
     def __init__(self,x=0,y=0,c=50,parent=None,parentScene=None): 
         super(pad1, self).__init__(x,y,c,c,parent,parentScene)
-        #super(Node, self).__init__(x,y,c,v,parent,sceneparent)
-        # setting node name based on counter
+        
 
-        #---------------------------        
         self.inputDict = {}
         self.seq=None
-        
         self.stop = False
         self.playing = False
-        
         self.parent=parent
         self.parentScene=parentScene
-
         self.setAcceptDrops(True)
-        #self.setFlag(QtGui.QGraphicsItem.ItemIsMovable, True)
-        #self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptHoverEvents(True)
         self.acceptTouchEvents()        
-        
-        
-
-        
         color = QtGui.QColor("Blue")
         self.setBrush(color)
         self.setAcceptDrops(True)
         self.acceptTouchEvents()
-        
         self.setToolTip("Click to start song sequence")
-       
-        #mixer.pre_init(44100,-16,2,2048)
         mixer.pre_init(44100, -16, 2, 512)
-        #mixer.init(22100, -16, 2, 64)
         mixer.init()          
         pygame.midi.init()
-        
-#    def hoverMoveEvent(self, event):
-#        #print "Mouse Entered"
-#        color = QtGui.QColor("Green")
-#        self.setBrush(color)
-#    
-#    def hoverLeaveEvent(self, event):
-#        #print "Mouse has gone"
-#        color = QtGui.QColor("Blue")
-#        self.setBrush(color) 
         
     def mouseMoveEvent(self, e):
         super(pad1, self).mouseMoveEvent(e)
@@ -107,20 +82,17 @@ class pad1(QtGui.QGraphicsEllipseItem):
         color = QtGui.QColor(colorString)
         self.setBrush(color)
         
+    def refreshsequence(self):
+        pad1.__counter=0
+        print("count = %i" %pad1.__counter)
         
-
     def mousePressEvent(self, e):
-      
         super(pad1, self).mousePressEvent(e)
              
         if e.button() == QtCore.Qt.LeftButton:        
              print('left')
-             #self.TriggerPad()
              self.startSong()
-             
 
-                                      
-              
         if e.button() == QtCore.Qt.RightButton:            
             print('midi')
             print(pad1.__counter)
@@ -135,17 +107,13 @@ class pad1(QtGui.QGraphicsEllipseItem):
                     pad1.__counter=0
             except:
                 print("Nothing to do")
-                #QtGui.QMessageBox.about( QtGui.QWidget()	,"Warning", "Please, define a song sequence!") 
     
-    
-        
     def mouseReleaseEvent(self, e):    
         #super(pad1, self).mouseReleaseEvent(e)
         print("Release")
         #self.updateColor("Blue") 
     
     def startSong(self):
-        
         #self.updateColor("Red")
         try:
             
@@ -177,8 +145,6 @@ class pad1(QtGui.QGraphicsEllipseItem):
             #QtGui.QMessageBox.about( QtGui.QWidget()	,"Warning", "Please, define a song sequence!")        
             #self.updateColor("Blue")      
             
-            
-            
     def TriggerPad(self):
              print("TriggerPad")
 
@@ -194,14 +160,6 @@ class pad1(QtGui.QGraphicsEllipseItem):
                  print(songListdecoded)
                  self.songListdecoded = songListdecoded
                  
-                 #play song             
-                 #print('---------------------------------------')
-                 #print(songListdecoded)
-                 #self.songPath = songListdecoded[pad1.__counter][0]
-                 #self.offset = float(songListdecoded[pad1.__counter][1])
-                 #print(songPath)
-
-                 
              except:           
                  #QtGui.QMessageBox.about( QtGui.QWidget()	,"Warning", "Please, define a song sequence!")        
                  #self.updateColor("Blue")
@@ -215,35 +173,11 @@ class pad1(QtGui.QGraphicsEllipseItem):
         mixer.music.load(songPath)
         self.endEvent = 234
         mixer.music.set_endevent(self.endEvent)
-   
-        #cur = mixer.music.get_pos()
-        #print("cur=",cur)
-        #mixer.music.set_pos(offset)
         mixer.music.play(start=offset)
         
         p=Thread(target=self.isPlaying)
         p.start()
-#        while pygame.mixer.music.get_busy(): 
-        #pygame.time.Clock().tick(2)
-    
-#    def mouseDoubleClickEvent(self,e):
-        
-#        print("Double click")
-#        #self.nodeScript()
-#        print('midi')
-#        print(pad1.__counter)
-#        try:
-#            self.playing = False
-#            mixer.music.stop()
-#            if pad1.__counter<len(self.songListdecoded)-1:  
-#                pad1.__counter+=1
-#            else:
-#                # restart
-#                pad1.__counter=0
-#        except:
-#            print("Nothing to do")
-            #QtGui.QMessageBox.about( QtGui.QWidget(),"Warning", "Please, define a song sequence!") 
-     
+
     def dragEnterEvent(self, e):
         print(e)
         
@@ -251,19 +185,15 @@ class pad1(QtGui.QGraphicsEllipseItem):
         super(pad1, self).keyPressEvent(e)
         print(e.key)
 
-        
     def eventFilter(self, object, event):
         print("mousemove!")
         print(event.type())
-     
      
     def isPlaying(self) :
          while pygame.mixer.music.get_busy(): 
              pygame.time.Clock().tick(2)
          self.playing = False
-         #self.updateColor("Blue") 
-         
-             
+
 
 
 
@@ -381,9 +311,14 @@ class mainWindow(QtGui.QMainWindow):
         saveAction.setShortcut('Ctrl+S')
         saveAction.triggered.connect(self.saveFile)
         
+        refreshAction = QtGui.QAction('Refresh Sequence', self)
+        refreshAction.setShortcut('Ctrl+R')
+        refreshAction.triggered.connect(self.refreshsequence)
+        
         # appending actions in file menu
         fileMenu.addAction(openAction)
         fileMenu.addAction(saveAction)
+        fileMenu.addAction(refreshAction)
 
         #---------------------------------------------------------------
         # add menu file
@@ -410,6 +345,11 @@ class mainWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.tabs)
         self.setWindowTitle('open Song Sequencer')  
     
+    def refreshsequence(self):
+        ''' refresh sequence to start from the begging
+        '''
+        self.pad1.refreshsequence()
+        
     def updateStatusBar(self,value):
         
         self.midiNoteInput = "Midi note: " +str(value)
@@ -420,7 +360,6 @@ class mainWindow(QtGui.QMainWindow):
         #print("set midi note")  
         self.midiNote = int(self.sender().text())
         #print(self.midiNote)
-        
         
     def midiDevice(self):
         self.deviceList={} 
@@ -444,17 +383,9 @@ class mainWindow(QtGui.QMainWindow):
                  self.device[index].triggered.connect(self.setMidiDevice)
                  self.midiMenu.addAction(self.device[index])
                  
-#                 self.device[index] = QtGui.QAction(device[1] , self) #, checkable=True)            
-#                 
-#                 self.device[index].triggered.connect(self.setMidiDevice)
-#                 
-#                 self.midiMenu.addAction(self.device[index])
-                 
                  self.deviceList[index]=[device[1].decode("utf-8") ,x]
                  index+=1
-         
-        #self.setMidiDevice()       
-
+               
     def setMidiDevice(self):
         print("setMidiDevice")
         sender = self.sender().text()
@@ -482,7 +413,6 @@ class mainWindow(QtGui.QMainWindow):
         self.p=Thread(target=self.getMidiEvent)
         self.p.start()
                
-                 
     def getMidiEvent(self):
 
         while self.getMidi: 
@@ -506,20 +436,9 @@ class mainWindow(QtGui.QMainWindow):
                 if midiint>10 and midinote == self.midiNote :    
                     self.s=Thread(target=self.pad1.startSong)
                     self.s.start()
-                    #pygame.time.wait(20)
-                
-            #pygame.time.wait(200)
-                #self.pad1.startSong()
-                #except:  
-                #    self.getMidi = False
-                #    self.errorHandeling
-                        
-                 
     
     def errorHandeling(self):
         pass
-        #QtGui.QMessageBox.about( QtGui.QWidget()	,"Warning", "Please, define a song sequence!")        
-        #self.pad1.updateColor("Blue")
         
     def openFile(self):
         print("open")
@@ -542,8 +461,6 @@ class mainWindow(QtGui.QMainWindow):
         self.updateCombo() 
         
         self.updateTabs()        
-        
-        # setting tab and tables
 
     def updateTabs(self):
         # remove all tabs
@@ -568,8 +485,6 @@ class mainWindow(QtGui.QMainWindow):
                
             self.ntabs+= 1
             
-        
-        
     def saveFile(self):
         print("save")
         self.updateDict(1)
@@ -592,7 +507,6 @@ class mainWindow(QtGui.QMainWindow):
     def keyPressEvent(self, e):        
         print(e.key)
     
-
     def songSequence(self):
         # tab for input -------------------------------------------
         
@@ -619,7 +533,6 @@ class mainWindow(QtGui.QMainWindow):
 
       
         self.ntabs-=1       
-        
         
     def createTab(self):
         
@@ -688,7 +601,6 @@ class mainWindow(QtGui.QMainWindow):
         self.combo.activated['QString'].connect(self.handleActivated)
         self.combo.currentIndexChanged['QString'].connect(self.handleChanged) 
         self.combo.setMinimumWidth(350)
-        #return self.combo
     
     def updateCombo(self):
         self.combo.clear()
@@ -696,23 +608,19 @@ class mainWindow(QtGui.QMainWindow):
             if "song" in self.songDict[key]:
                 if self.songDict[key]["song"]:
                     self.combo.addItem(key)
-            
-         
-    
 
     def handleActivated(self):
         print("Activate")
         index = self.combo.currentIndex()
         print(self.combo.itemText(index))
         self.pad1.seq = self.combo.itemText(index) 
-        #self.pad1.TriggerPad()        
-        
+              
     def handleChanged(self):
         print("Change")
         index = self.combo.currentIndex()
         print(self.combo.itemText(index))
         self.pad1.seq = self.combo.itemText(index)    
-        #self.pad1.TriggerPad()        
+
         
 class songCreator(QtGui.QTabWidget):
     def __init__(self,tabs,songList=None):
@@ -725,10 +633,6 @@ class songCreator(QtGui.QTabWidget):
         self.pushButton1.clicked.connect(self.addsong)
         self.pushButton2 = QtGui.QPushButton("Remove song")
         self.pushButton2.clicked.connect(self.deletesong)
-        
-        #self.pushButton3 = QtGui.QPushButton("Delete Entire Sequence")        
-        #self.pushButton3.clicked.connect(self.deleteTab)        
-        
         self.vBoxlayout = QtGui.QVBoxLayout()
         self.hBoxlayout = QtGui.QHBoxLayout()
         
@@ -738,23 +642,14 @@ class songCreator(QtGui.QTabWidget):
         self.table = QtGui.QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["  Counter ","  Song  ","  offset   "])
-        #self.table.itemChanged.connect(self.itemChanged)           
-        
 
-                
-        
         if songList!=None:
             self.addseq(songList)
         
         self.vBoxlayout.addLayout(self.hBoxlayout)
         self.vBoxlayout.addWidget(self.table)
-        #self.vBoxlayout.addWidget(self.pushButton3)
-
         self.setLayout(self.vBoxlayout) 
         
-         
-
-       
     def addsong(self):
         print("add song")
         
@@ -763,8 +658,6 @@ class songCreator(QtGui.QTabWidget):
         self.table.setRowCount(self.tableIndex+1)            
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', os.getenv('HOME'),"song files (*.mp3 *.wav)")
        
-
-        
       # adding default variable name to table
         default_name = QtGui.QTableWidgetItem("1")
         self.table.setItem(index,0,default_name)
@@ -774,8 +667,7 @@ class songCreator(QtGui.QTabWidget):
       # adding default variable name to table
         default_name = QtGui.QTableWidgetItem("0")
         self.table.setItem(index,2,default_name)  
-    
-        
+
         self.tableIndex+=1
        # setting table format 
         self.table.resizeColumnsToContents()
@@ -812,11 +704,8 @@ class songCreator(QtGui.QTabWidget):
         # setting table format 
         self.table.resizeColumnsToContents()
         self.table.resizeRowsToContents() 
+
         
-    
-
-
-
 class Player():
     def __init__(songPath,offset):
         mixer.init()
